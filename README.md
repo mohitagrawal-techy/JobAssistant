@@ -64,7 +64,7 @@ The "Continue with Google" button appears once `GOOGLE_CLIENT_ID` and `GOOGLE_CL
 http://localhost:5173/api/auth/google/callback
 ```
 
-New Google users choose their role and accept the data consent on a short page before an account is created. A Google login joins an existing account with the same email. If that email was never confirmed, its password is removed and its sessions end, so nobody who pre-registered someone else's address keeps access.
+Sign-in asks Google for the person's email, name and photo. The name starts a job seeker's profile, where they can change it, and the photo only appears in their own account menu. New Google users choose their role and accept the data consent on a short page before an account is created. A Google login joins an existing account with the same email. If that email was never confirmed, its password is removed and its sessions end, so nobody who pre-registered someone else's address keeps access.
 
 ## Run it
 

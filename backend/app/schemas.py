@@ -76,6 +76,8 @@ class UserOut(BaseModel):
     email: str
     role: Role
     email_verified: bool
+    full_name: str | None = None
+    picture_url: str | None = None
     organization: OrgOut | None = None
 
 

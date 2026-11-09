@@ -13,6 +13,7 @@ from tests.conftest import new_client
 CLIENT_ID = "test-google-client"
 EMAIL = "person@gmail.com"
 PASSWORD = "password123"
+PICTURE = "https://lh3.googleusercontent.com/a/photo"
 
 
 def id_token(nonce: str, **overrides) -> str:
@@ -23,6 +24,8 @@ def id_token(nonce: str, **overrides) -> str:
         "sub": "google-subject-1",
         "email": EMAIL,
         "email_verified": True,
+        "name": "Asha Rao",
+        "picture": PICTURE,
         "nonce": nonce,
         **overrides,
     }
@@ -71,7 +74,7 @@ async def test_start_sends_the_browser_to_google():
     assert target.netloc == "accounts.google.com"
     assert query["client_id"] == [CLIENT_ID]
     assert query["redirect_uri"] == ["http://localhost:5173/api/auth/google/callback"]
-    assert query["scope"] == ["openid email"]
+    assert query["scope"] == ["openid email profile"]
     assert query["state"] and query["nonce"]
 
 
@@ -87,7 +90,11 @@ async def test_new_user_chooses_a_role_and_consents():
         response = await sign_in(client, role="recruiter")
         assert location(response) == "/finish-signup?role=recruiter"
         assert (await client.get("/api/auth/me")).status_code == 401
-        assert (await client.get("/api/auth/google/pending")).json() == {"email": EMAIL}
+        assert (await client.get("/api/auth/google/pending")).json() == {
+            "email": EMAIL,
+            "name": "Asha Rao",
+            "picture_url": PICTURE,
+        }
 
         refused = await client.post(
             "/api/auth/google/complete", json={"role": "recruiter", "consent": False}
@@ -244,3 +251,84 @@ async def test_google_outage_shows_a_failure():
                 "/api/auth/google/callback", params={"code": "abc", "state": state}
             )
     assert location(response) == "/login?google=failed"
+
+
+async def complete_signup(client, role="seeker"):
+    response = await client.post("/api/auth/google/complete", json={"role": role, "consent": True})
+    assert response.status_code == 201
+
+
+async def test_signup_saves_name_and_photo_and_starts_the_profile():
+    async with new_client() as client:
+        await sign_in(client)
+        await complete_signup(client)
+        me = (await client.get("/api/auth/me")).json()
+        assert me["full_name"] == "Asha Rao" and me["picture_url"] == PICTURE
+        assert (await client.get("/api/profile")).json()["full_name"] == "Asha Rao"
+
+
+async def test_recruiter_signup_keeps_the_name_on_the_account():
+    async with new_client() as client:
+        await sign_in(client)
+        await complete_signup(client, "recruiter")
+        assert (await client.get("/api/auth/me")).json()["full_name"] == "Asha Rao"
+
+
+async def test_each_sign_in_refreshes_details_but_keeps_the_profile_name():
+    async with new_client() as client:
+        await sign_in(client)
+        await complete_signup(client)
+        profile = (await client.get("/api/profile")).json()
+    async with new_client() as client:
+        await sign_in(client, name="Asha R.", picture="https://lh3.googleusercontent.com/new")
+        me = (await client.get("/api/auth/me")).json()
+        assert me["full_name"] == "Asha R."
+        assert me["picture_url"].endswith("/new")
+        assert (await client.get("/api/profile")).json()["full_name"] == profile["full_name"]
+
+
+async def test_linking_fills_an_empty_profile_name_only():
+    async with new_client() as owner:
+        await register(owner)
+        await mark_verified()
+        await sign_in(owner)
+        assert (await owner.get("/api/profile")).json()["full_name"] == "Asha Rao"
+
+    async with new_client() as owner:
+        await register(owner, "second@gmail.com")
+        await mark_verified()
+        async with SessionLocal() as db:
+            await db.execute(
+                text(
+                    "UPDATE candidate_profiles SET full_name = 'Chosen Name' WHERE user_id = "
+                    "(SELECT id FROM users WHERE email = 'second@gmail.com')"
+                )
+            )
+            await db.commit()
+        await sign_in(owner, email="second@gmail.com", sub="google-subject-2")
+        assert (await owner.get("/api/profile")).json()["full_name"] == "Chosen Name"
+
+
+async def test_unusable_details_from_google_are_dropped():
+    async with new_client() as client:
+        await sign_in(client, name="  " + "x" * 300, picture="http://insecure.example.com/a.png")
+        pending = (await client.get("/api/auth/google/pending")).json()
+    assert len(pending["name"]) == 200
+    assert pending["picture_url"] is None
+
+
+async def test_sign_in_works_without_name_or_photo():
+    async with new_client() as client:
+        await sign_in(client, name=None, picture=None)
+        await complete_signup(client)
+        me = (await client.get("/api/auth/me")).json()
+        assert me["full_name"] is None and me["picture_url"] is None
+        assert (await client.get("/api/profile")).json()["full_name"] == ""
+
+
+async def test_export_includes_details_from_google():
+    async with new_client() as client:
+        await sign_in(client)
+        await complete_signup(client)
+        account = (await client.get("/api/profile/export")).json()["account"]
+    assert account["full_name"] == "Asha Rao" and account["picture_url"] == PICTURE

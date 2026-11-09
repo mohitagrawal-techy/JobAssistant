@@ -13,6 +13,8 @@ AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
 TOKEN_URL = "https://oauth2.googleapis.com/token"
 ISSUERS = {"https://accounts.google.com", "accounts.google.com"}
 HTTP_TIMEOUT_SECONDS = 15
+MAX_NAME_LENGTH = 200
+MAX_PICTURE_URL_LENGTH = 1000
 
 
 class GoogleAuthError(Exception):
@@ -24,6 +26,18 @@ class GoogleIdentity:
     subject: str
     email: str
     email_verified: bool
+    name: str | None = None
+    picture_url: str | None = None
+
+
+def _clean_name(value: object) -> str | None:
+    name = value.strip()[:MAX_NAME_LENGTH] if isinstance(value, str) else ""
+    return name or None
+
+
+def _clean_picture_url(value: object) -> str | None:
+    usable = isinstance(value, str) and value.startswith("https://")
+    return value if usable and len(value) <= MAX_PICTURE_URL_LENGTH else None
 
 
 def is_configured() -> bool:
@@ -41,7 +55,7 @@ def authorization_url(state: str, nonce: str) -> str:
             "client_id": get_settings().google_client_id,
             "redirect_uri": _redirect_uri(),
             "response_type": "code",
-            "scope": "openid email",
+            "scope": "openid email profile",
             "state": state,
             "nonce": nonce,
             "prompt": "select_account",
@@ -91,4 +105,10 @@ async def fetch_identity(code: str, nonce: str) -> GoogleIdentity:
         raise GoogleAuthError("Token has expired")
     if token_nonce != nonce:
         raise GoogleAuthError("Nonce mismatch")
-    return GoogleIdentity(subject, email, claims.get("email_verified") is True)
+    return GoogleIdentity(
+        subject,
+        email,
+        claims.get("email_verified") is True,
+        _clean_name(claims.get("name")),
+        _clean_picture_url(claims.get("picture")),
+    )

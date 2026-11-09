@@ -41,6 +41,8 @@ class User(Base):
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
     password_hash: Mapped[str | None] = mapped_column(String(255))  # empty for Google-only users
     google_sub: Mapped[str | None] = mapped_column(String(255), unique=True, index=True)
+    full_name: Mapped[str | None] = mapped_column(String(200))  # from Google
+    picture_url: Mapped[str | None] = mapped_column(String(1000))  # from Google
     role: Mapped[str] = mapped_column(String(20))  # seeker | recruiter
     consent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

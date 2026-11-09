@@ -56,7 +56,7 @@ export function FinishSignupPage() {
   const finish = useFinishAuth();
   const pending = useQuery({
     queryKey: ["google-pending"],
-    queryFn: () => api<{ email: string }>("/auth/google/pending"),
+    queryFn: () => api<{ email: string; name: string | null; picture_url: string | null }>("/auth/google/pending"),
     retry: false,
   });
   const complete = useMutation({
@@ -82,8 +82,24 @@ export function FinishSignupPage() {
   return (
     <div className="mx-auto max-w-sm">
       <PageTitle>Finish signing up</PageTitle>
-      <p className="mb-4 text-ink-soft">
-        You're signing up with <strong className="text-ink">{pending.data.email}</strong>.
+      <div className="mb-4 flex items-center gap-3">
+        {pending.data.picture_url && (
+          <img
+            src={pending.data.picture_url}
+            alt=""
+            referrerPolicy="no-referrer"
+            className="h-12 w-12 shrink-0 rounded-full object-cover"
+            onError={(event) => event.currentTarget.remove()}
+          />
+        )}
+        <p className="min-w-0 break-words text-ink-soft">
+          {pending.data.name && <strong className="block text-ink">{pending.data.name}</strong>}
+          {pending.data.email}
+        </p>
+      </div>
+      <p className="mb-4 text-sm text-ink-soft">
+        We'll use your name and photo from Google. If you're looking for work, your name starts
+        your profile and you can change it anytime. Only you see your photo.
       </p>
       <form onSubmit={submit} className="space-y-4">
         <RoleAndConsentFields role={role} consent={consent} onRole={setRole} onConsent={setConsent} />

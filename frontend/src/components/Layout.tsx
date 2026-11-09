@@ -58,6 +58,23 @@ function VerifyEmailBanner({ email }: { email: string }) {
   );
 }
 
+function Avatar({ user }: { user: User }) {
+  const [broken, setBroken] = useState(false);
+  if (user.picture_url && !broken) {
+    // Google's image host often refuses requests that carry a referrer.
+    return (
+      <img
+        src={user.picture_url}
+        alt=""
+        referrerPolicy="no-referrer"
+        className="h-full w-full object-cover"
+        onError={() => setBroken(true)}
+      />
+    );
+  }
+  return <>{(user.full_name || user.email)[0]}</>;
+}
+
 function AccountMenu({ user }: { user: User }) {
   const [open, setOpen] = useState(false);
   const container = useRef<HTMLDivElement>(null);
@@ -90,13 +107,16 @@ function AccountMenu({ user }: { user: User }) {
         aria-expanded={open}
         aria-label="Account menu"
         onClick={() => setOpen(!open)}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-sm font-bold uppercase text-ink"
+        className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-white text-sm font-bold uppercase text-ink"
       >
-        {user.email[0]}
+        <Avatar user={user} />
       </button>
       {open && (
         <div className="absolute right-0 top-full z-30 mt-2 w-64 rounded-2xl border-frame border-line bg-white p-2 text-ink shadow-raised">
-          <p className="truncate px-3 py-2 text-sm text-ink-soft">{user.email}</p>
+          <div className="px-3 py-2 text-sm">
+            {user.full_name && <p className="truncate font-semibold text-ink">{user.full_name}</p>}
+            <p className="truncate text-ink-soft">{user.email}</p>
+          </div>
           {user.role === "seeker" && (
             <>
               <Link to="/profile" className={item}>Profile</Link>

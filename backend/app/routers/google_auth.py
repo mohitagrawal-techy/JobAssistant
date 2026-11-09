@@ -62,11 +62,17 @@ def _redirect(path: str) -> RedirectResponse:
     return response
 
 
+def _copy_google_details(user: User, identity: google_oauth.GoogleIdentity) -> None:
+    user.full_name = identity.name or user.full_name
+    user.picture_url = identity.picture_url or user.picture_url
+
+
 async def _find_or_link_user(
     db: AsyncSession, identity: google_oauth.GoogleIdentity
 ) -> User | None:
     user = await db.scalar(select(User).where(User.google_sub == identity.subject))
     if user is not None:
+        _copy_google_details(user, identity)
         return user
     user = await db.scalar(select(User).where(User.email == identity.email))
     if user is None:
@@ -78,6 +84,11 @@ async def _find_or_link_user(
         user.session_version += 1
         user.email_verified_at = datetime.now(UTC)
     user.google_sub = identity.subject
+    _copy_google_details(user, identity)
+    profile = await db.scalar(select(CandidateProfile).where(CandidateProfile.user_id == user.id))
+    # Only when first linking, so a name the seeker later clears doesn't come back.
+    if profile is not None and identity.name and not profile.full_name.strip():
+        profile.full_name = identity.name
     return user
 
 
@@ -125,7 +136,14 @@ async def google_callback(
         role = flow.get("role")
         response = _redirect(f"/finish-signup?role={role}" if role else "/finish-signup")
         pending = _sign(
-            {"sub": identity.subject, "email": identity.email}, SIGNUP_AUDIENCE, SIGNUP_LIFETIME
+            {
+                "sub": identity.subject,
+                "email": identity.email,
+                "name": identity.name,
+                "picture_url": identity.picture_url,
+            },
+            SIGNUP_AUDIENCE,
+            SIGNUP_LIFETIME,
         )
         _set_flow_cookie(response, SIGNUP_COOKIE, pending, SIGNUP_LIFETIME)
         return response
@@ -142,11 +160,15 @@ async def google_callback(
 @router.get("/auth/google/pending")
 async def google_pending(
     signup_cookie: str | None = Cookie(default=None, alias=SIGNUP_COOKIE),
-) -> dict[str, str]:
+) -> dict[str, str | None]:
     pending = _read(signup_cookie, SIGNUP_AUDIENCE)
     if pending is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Your Google sign-in has expired")
-    return {"email": pending["email"]}
+    return {
+        "email": pending["email"],
+        "name": pending.get("name"),
+        "picture_url": pending.get("picture_url"),
+    }
 
 
 @router.post("/auth/google/complete", status_code=status.HTTP_201_CREATED)
@@ -168,6 +190,8 @@ async def google_complete(
         email=pending["email"],
         password_hash=None,
         google_sub=pending["sub"],
+        full_name=pending.get("name"),
+        picture_url=pending.get("picture_url"),
         role=body.role,
         consent_at=now,
         email_verified_at=now,
@@ -181,7 +205,7 @@ async def google_complete(
             status.HTTP_409_CONFLICT, "This account already exists. Log in instead."
         ) from exc
     if user.role == "seeker":
-        db.add(CandidateProfile(user_id=user.id))
+        db.add(CandidateProfile(user_id=user.id, full_name=pending.get("name") or ""))
     await db.commit()
     response.delete_cookie(SIGNUP_COOKIE, path=COOKIE_PATH)
     set_session_cookie(response, user)

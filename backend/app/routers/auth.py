@@ -62,6 +62,8 @@ async def user_out(db: AsyncSession, user: User) -> UserOut:
         email=user.email,
         role=user.role,
         email_verified=user.email_verified_at is not None,
+        full_name=user.full_name,
+        picture_url=user.picture_url,
         organization=OrgOut.model_validate(org) if org else None,
     )
 

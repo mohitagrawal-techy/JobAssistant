@@ -10,6 +10,8 @@ export type User = {
   email: string;
   role: Role;
   email_verified: boolean;
+  full_name: string | null;
+  picture_url: string | null;
   organization: Organization | null;
 };
 

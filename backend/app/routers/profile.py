@@ -131,7 +131,12 @@ async def export_data(
         select(AssistantAction).where(AssistantAction.candidate_id == profile.id)
     )
     return {
-        "account": {"email": user.email, "consent_at": user.consent_at.isoformat()},
+        "account": {
+            "email": user.email,
+            "full_name": user.full_name,
+            "picture_url": user.picture_url,
+            "consent_at": user.consent_at.isoformat(),
+        },
         "profile": profile_out(profile).model_dump(mode="json"),
         "resumes": [ResumeOut.model_validate(r).model_dump(mode="json") for r in resumes],
         "applications": [
