@@ -1,6 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 
 import { send } from "../api/client";
 import type { User } from "../api/types";
@@ -80,7 +80,6 @@ function AccountMenu({ user }: { user: User }) {
   const container = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const logout = useLogout();
-  const navigate = useNavigate();
 
   useEffect(() => setOpen(false), [location.pathname]);
   useEffect(() => {
@@ -127,7 +126,7 @@ function AccountMenu({ user }: { user: User }) {
           <button
             type="button"
             className={`${item} w-full text-left`}
-            onClick={() => logout.mutate(undefined, { onSuccess: () => navigate("/") })}
+            onClick={() => logout.mutate()}
           >
             Log out
           </button>

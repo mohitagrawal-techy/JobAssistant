@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
 
@@ -21,10 +21,11 @@ export function useCurrentUser() {
 }
 
 export function useLogout() {
-  const client = useQueryClient();
   return useMutation({
     mutationFn: () => send<void>("POST", "/auth/logout"),
-    onSuccess: () => client.clear(),
+    // A full load drops all cached user data. queryClient.clear() would leave mounted components,
+    // like the nav bar, showing the old user because it doesn't notify them.
+    onSuccess: () => window.location.assign("/"),
   });
 }
 
