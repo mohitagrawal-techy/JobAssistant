@@ -1,0 +1,35 @@
+from app.db import Base
+from app.models.tables import (
+    EMBEDDING_DIM,
+    Application,
+    AssistantAction,
+    AssistantSettings,
+    CandidateProfile,
+    CandidateSkill,
+    Job,
+    JobSkill,
+    MatchExplanationRecord,
+    Organization,
+    OrgMember,
+    Resume,
+    Skill,
+    User,
+)
+
+__all__ = [
+    "EMBEDDING_DIM",
+    "Application",
+    "AssistantAction",
+    "AssistantSettings",
+    "Base",
+    "CandidateProfile",
+    "CandidateSkill",
+    "Job",
+    "JobSkill",
+    "MatchExplanationRecord",
+    "OrgMember",
+    "Organization",
+    "Resume",
+    "Skill",
+    "User",
+]
