@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-do
 
 import type { User } from "../api/types";
 import { useCurrentUser, useLogout } from "../auth";
+import { Logo } from "./Logo";
 import { THEMES, useTheme } from "../theme";
 
 const pillIdle = "text-white/90 hover:bg-white/15";
@@ -120,8 +121,8 @@ export function Layout() {
     <div className="min-h-screen bg-canvas text-ink">
       <nav aria-label="Main" className="mx-[3%] px-[3%] pt-4">
         <div className="flex min-h-16 items-center gap-1 rounded-panel bg-ink px-4 py-3">
-          <Link to="/" className="mr-1 px-1 font-display text-2xl text-white sm:mr-3 sm:px-2">
-            Khoj
+          <Link to="/" className="mr-1 flex items-center px-1 text-xl text-white sm:mr-3 sm:px-2">
+            <Logo wordClassName="max-sm:sr-only" />
           </Link>
           <div className={`items-center gap-1 ${user ? "hidden md:flex" : "flex"}`}>
             {links.map((link) => (

@@ -81,7 +81,7 @@ test("recruiter and seeker complete a hire end to end", async ({ browser }) => {
   await seeker.goto("/privacy");
   await seeker.getByRole("button", { name: "Delete my account" }).click();
   await seeker.getByRole("button", { name: "Yes, delete everything" }).click();
-  await expect(seeker.getByRole("heading", { name: /Khoj your next job/ })).toBeVisible();
+  await expect(seeker.getByRole("heading", { name: /Find opportunities that fit you/ })).toBeVisible();
 });
 
 test("demo accounts show seeded matches", async ({ page }) => {
@@ -138,7 +138,7 @@ test("hiring partner writes a job, asks the agent and acts on insights", async (
 
 test("visitors can switch to the professional theme and it is remembered", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Khoj your next job/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Find opportunities that fit you/ })).toBeVisible();
   await expect(page.getByRole("button", { name: "Playful" })).toHaveAttribute("aria-pressed", "true");
 
   await page.getByRole("button", { name: "Professional" }).click();

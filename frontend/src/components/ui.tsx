@@ -5,7 +5,6 @@ import { Link } from "react-router-dom";
 
 import { api } from "../api/client";
 import type { Explanation, Job, Score } from "../api/types";
-import { useTheme } from "../theme";
 
 export const inputClass =
   "mt-1 w-full rounded-xl border-frame border-input bg-white px-3 py-2 text-sm font-normal text-ink placeholder:text-ink-muted";
@@ -273,26 +272,13 @@ export function JobFacts({ job }: { job: Job }) {
   );
 }
 
-const STAR_POINTS = 14;
-
-function starPath(): string {
-  const points = Array.from({ length: STAR_POINTS * 2 }, (_, index) => {
-    const radius = index % 2 === 0 ? 48 : 41;
-    const angle = (Math.PI * index) / STAR_POINTS;
-    return `${(50 + radius * Math.sin(angle)).toFixed(2)},${(50 - radius * Math.cos(angle)).toFixed(2)}`;
-  });
-  return points.join(" ");
-}
-
-export const STAR = starPath();
-
 function scoreColor(total: number): string {
   if (total >= 75) return "var(--color-score-high)";
   if (total >= 50) return "var(--color-score-mid)";
   return "var(--color-score-low)";
 }
 
-function ScoreRing({ total, large }: { total: number; large: boolean }) {
+export function ScoreBadge({ total, large = false }: { total: number; large?: boolean }) {
   const score = Math.round(total);
   const circumference = 2 * Math.PI * 44;
   return (
@@ -316,39 +302,6 @@ function ScoreRing({ total, large }: { total: number; large: boolean }) {
       </div>
     </div>
   );
-}
-
-function ScoreSticker({ total, large }: { total: number; large: boolean }) {
-  const score = Math.round(total);
-  // Each score gets its own slight tilt, so a list looks hand-stickered but never jumps around.
-  const tilt = (score % 15) - 7;
-  return (
-    <div
-      className={`relative shrink-0 ${large ? "h-32 w-32" : "h-[68px] w-[68px]"}`}
-      style={{ transform: `rotate(${tilt}deg)` }}
-    >
-      <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full" aria-hidden="true">
-        <polygon points={STAR} transform="translate(3 3)" fill="var(--color-ink)" />
-        <polygon
-          points={STAR}
-          fill={scoreColor(total)}
-          stroke="var(--color-ink)"
-          strokeWidth="2.5"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-ink">
-        <span className={`font-display leading-none ${large ? "text-5xl" : "text-2xl"}`}>{score}</span>
-        <span className={`font-semibold leading-none ${large ? "mt-1 text-sm" : "text-[10px]"}`}>match</span>
-      </div>
-    </div>
-  );
-}
-
-export function ScoreBadge({ total, large = false }: { total: number; large?: boolean }) {
-  const { theme } = useTheme();
-  const Badge = theme === "professional" ? ScoreRing : ScoreSticker;
-  return <Badge total={total} large={large} />;
 }
 
 export function SkillComparison({ score }: { score: Score }) {

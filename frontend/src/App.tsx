@@ -19,7 +19,7 @@ import { ApplicationsPage, MatchesPage, PrivacyPage } from "./pages/seeker";
 // The hiring tools include the chart library, so only their users download it.
 const InsightsPage = lazy(() => import("./pages/hiring").then((m) => ({ default: m.InsightsPage })));
 const JobWriterPage = lazy(() => import("./pages/hiring").then((m) => ({ default: m.JobWriterPage })));
-const loading = <p className="text-sm text-slate-500">Loading…</p>;
+const loading = <p className="text-sm text-ink-muted">Loading…</p>;
 const lazyPage = (page: React.ReactNode) => <Suspense fallback={loading}>{page}</Suspense>;
 
 const seeker = (page: React.ReactNode) => <RequireRole role="seeker">{page}</RequireRole>;

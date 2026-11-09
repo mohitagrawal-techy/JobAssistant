@@ -12,7 +12,7 @@ import {
 
 import type { ApplicantInsight, ScoreBand, SkillCoverage } from "../api/types";
 
-// Each theme defines these colours in index.css, validated for colourblind readability.
+// Brand colours from index.css, validated for colourblind readability.
 const SERIES = {
   first: "var(--color-chart-1)",
   second: "var(--color-chart-2)",

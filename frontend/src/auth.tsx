@@ -35,7 +35,7 @@ export function homeFor(user: User): string {
 
 export function RequireRole({ role, children }: { role: Role; children: ReactNode }) {
   const { data: user, isPending } = useCurrentUser();
-  if (isPending) return <p className="p-8 text-sm text-slate-500">Loading…</p>;
+  if (isPending) return <p className="p-8 text-sm text-ink-muted">Loading…</p>;
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== role) return <Navigate to={homeFor(user)} replace />;
   return <>{children}</>;

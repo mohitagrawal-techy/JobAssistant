@@ -1,37 +1,37 @@
 @import "tailwindcss";
 
-/* Playful is the default theme. Components use these names, so a theme only changes values. */
+/* The Khoj brand palette. Components use these names, so colours change in this one place. */
 @theme static {
-  --color-ink: #2b0f54;
-  --color-ink-soft: #4e3b70;
-  --color-ink-muted: #665583;
-  --color-canvas: #f1ebff;
-  --color-subtle: #f8f5ff;
+  --color-ink: #1b1442;
+  --color-ink-soft: #453c6e;
+  --color-ink-muted: #635a88;
+  --color-canvas: #f7f3ff;
+  --color-subtle: #fbf9ff;
   --color-surface: #ffffff;
-  --color-line: #ddd2f5;
-  --color-input: #8f7ab8;
-  --color-grid: #e6dff5;
-  --color-brand: #5b2be0;
-  --color-accent: #ff5c9a;
-  --color-accent-edge: #2b0f54;
-  --color-on-accent: #2b0f54;
-  --color-project: #ff5c9a;
-  --color-on-project: #2b0f54;
-  --color-highlight: #ffd43b;
-  --color-positive: #3debb0;
+  --color-line: #e4daf8;
+  --color-input: #8b7fb0;
+  --color-grid: #ebe4f8;
+  --color-brand: #4c1d95;
+  --color-accent: #f59e0b;
+  --color-accent-edge: #f59e0b;
+  --color-on-accent: #1b1442;
+  --color-project: #7c3aed;
+  --color-on-project: #ffffff;
+  --color-highlight: #fef3c7;
+  --color-positive: #ede4ff;
   --color-danger: #b8123c;
 
-  --color-score-high: #3debb0;
-  --color-score-mid: #ffd43b;
-  --color-score-low: #e6dcff;
+  --color-score-high: #7c3aed;
+  --color-score-mid: #f59e0b;
+  --color-score-low: #c9bce8;
 
-  --color-chart-1: #12b886;
-  --color-chart-2: #5b2be0;
-  --color-chart-3: #e8a200;
-  --color-chart-4: #f0397f;
-  --color-chart-single: #5b2be0;
+  --color-chart-1: #7c3aed;
+  --color-chart-2: #f59e0b;
+  --color-chart-3: #a78bfa;
+  --color-chart-4: #b45309;
+  --color-chart-single: #7c3aed;
 
-  --font-display: "Bagel Fat One", ui-rounded, system-ui, sans-serif;
+  --font-display: "Onest Variable", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Onest Variable", ui-sans-serif, system-ui, sans-serif;
   --font-devanagari: "Baloo 2", "Noto Sans Devanagari", sans-serif;
 
@@ -44,53 +44,24 @@
 
 html {
   --line-width: 1px;
-  --heading-weight: 400;
+  --heading-weight: 700;
+  --heading-tracking: -0.025em;
   --font-section: var(--font-sans);
   --section-weight: 700;
-  --elevation: 0 1px 2px rgb(43 15 84 / 0.05), 0 6px 18px rgb(43 15 84 / 0.05);
-  --btn-primary-border: 2px;
-  --btn-primary-shadow: 3px 3px 0 var(--color-ink);
-  --btn-hover-shift: -1px;
-  --btn-active-shift: 3px;
-  --btn-hover-filter: none;
-  --btn-hover-shadow: 5px 5px 0 var(--color-ink);
+  --elevation: 0 1px 2px rgb(27 20 66 / 0.06), 0 8px 24px rgb(27 20 66 / 0.08);
+  --btn-primary-border: 1px;
+  --btn-primary-shadow: none;
+  --btn-hover-shift: 0;
+  --btn-active-shift: 0;
+  --btn-hover-filter: brightness(0.94);
+  --btn-hover-shadow: none;
 }
 
+/* Every theme shares the brand colours above. Professional only changes type and corners. */
 html[data-theme="professional"] {
-  --color-ink: #14233a;
-  --color-ink-soft: #3d4c63;
-  --color-ink-muted: #5a6980;
-  --color-canvas: #f3f5f8;
-  --color-subtle: #eef1f6;
-  --color-line: #d3dae4;
-  --color-input: #8491a5;
-  --color-grid: #e4e9f0;
-  --color-brand: #1a5a8a;
-  --color-accent: #1a5a8a;
-  --color-accent-edge: #1a5a8a;
-  --color-on-accent: #ffffff;
-  --color-project: #a84e17;
-  --color-on-project: #ffffff;
-  --color-highlight: #fbe7bf;
-  --color-positive: #cdebdc;
-  --color-danger: #b3261e;
-
-  --color-score-high: #1e7f5c;
-  --color-score-mid: #b7791f;
-  --color-score-low: #6b7a90;
-
-  --color-chart-1: #1872b8;
-  --color-chart-2: #d2691e;
-  --color-chart-3: #0e9680;
-  --color-chart-4: #7a4fbf;
-  --color-chart-single: #1872b8;
-
   --font-display: "Source Serif 4 Variable", ui-serif, Georgia, serif;
   --font-devanagari: "Tiro Devanagari Hindi", "Noto Serif Devanagari", serif;
 
-  --elevation: 0 1px 2px rgb(20 35 58 / 0.06), 0 4px 12px rgb(20 35 58 / 0.04);
-  --btn-primary-border: 1px;
-  --btn-primary-shadow: none;
   --section-weight: 600;
   --font-section: var(--font-display);
 
@@ -100,12 +71,8 @@ html[data-theme="professional"] {
   --radius-2xl: 0.5rem;
   --radius-xl: 0.375rem;
 
-  --line-width: 1px;
   --heading-weight: 600;
-  --btn-hover-shift: 0;
-  --btn-active-shift: 0;
-  --btn-hover-filter: brightness(0.93);
-  --btn-hover-shadow: none;
+  --heading-tracking: 0.005em;
 }
 
 /* Tailwind inlines theme shadows into its classes, so themed shadows need their own utility. */
@@ -122,7 +89,7 @@ html[data-theme="professional"] {
   h1 {
     font-family: var(--font-display);
     font-weight: var(--heading-weight);
-    letter-spacing: 0.005em;
+    letter-spacing: var(--heading-tracking);
   }
 
   h2 {
@@ -178,20 +145,18 @@ html[data-theme="professional"] {
   }
 }
 
-/* The one automatic motion on the site: the name sticker landing on the hero. */
-@keyframes stamp {
-  from {
-    opacity: 0;
-    transform: scale(1.9) rotate(-24deg);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1) rotate(0deg);
-  }
-}
-
-.stamp {
-  animation: stamp 420ms cubic-bezier(0.2, 1.4, 0.4, 1) 350ms both;
+/* Dusk over the ridge. Stops are measured from the bottom edge, where the job list covers the hero. */
+.hero-sunset {
+  background:
+    radial-gradient(55% 200px at 72% calc(100% - 175px), rgb(255 176 72 / 0.9), transparent 72%),
+    linear-gradient(
+      to bottom,
+      #2a1168 0,
+      #4c1d95 calc(100% - 400px),
+      #7a2f9e calc(100% - 265px),
+      #e0752f calc(100% - 205px),
+      #f59e0b 100%
+    );
 }
 
 @media (prefers-reduced-motion: reduce) {

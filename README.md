@@ -46,7 +46,7 @@ Fixed rules choose jobs: minimum score, daily limit (10 at most), excluded compa
 
 ## Themes
 
-The site has two themes, Playful (the default) and Professional, chosen with the switch in the navigation and remembered in each visitor's browser. Theme values live in `frontend/src/index.css`, so components only use names like `bg-canvas` and `text-brand`. Chart colours in each theme are checked for colourblind readability.
+The site has two themes, Playful (the default) and Professional, chosen with the switch in the navigation and remembered in each visitor's browser. Both use the Khoj brand palette and differ only in type and corners. Theme values live in `frontend/src/index.css`, so components only use names like `bg-canvas` and `text-brand`. Chart colours are checked for colourblind readability.
 
 ## Run it
 
