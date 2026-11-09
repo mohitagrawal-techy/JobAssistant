@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* The Khoj brand palette. Components use these names, so colours change in this one place. */
+/* The Khoj brand. Components use these names, so colours and fonts change in this one place. */
 @theme static {
   --color-ink: #1b1442;
   --color-ink-soft: #453c6e;
@@ -55,24 +55,6 @@ html {
   --btn-active-shift: 0;
   --btn-hover-filter: brightness(0.94);
   --btn-hover-shadow: none;
-}
-
-/* Every theme shares the brand colours above. Professional only changes type and corners. */
-html[data-theme="professional"] {
-  --font-display: "Source Serif 4 Variable", ui-serif, Georgia, serif;
-  --font-devanagari: "Tiro Devanagari Hindi", "Noto Serif Devanagari", serif;
-
-  --section-weight: 600;
-  --font-section: var(--font-display);
-
-  --radius-pill: 0.375rem;
-  --radius-panel: 0.75rem;
-  --radius-3xl: 0.625rem;
-  --radius-2xl: 0.5rem;
-  --radius-xl: 0.375rem;
-
-  --heading-weight: 600;
-  --heading-tracking: 0.005em;
 }
 
 /* Tailwind inlines theme shadows into its classes, so themed shadows need their own utility. */

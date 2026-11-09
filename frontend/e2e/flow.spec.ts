@@ -136,23 +136,6 @@ test("hiring partner writes a job, asks the agent and acts on insights", async (
   await expect(page.getByTestId("agent-card").first().getByRole("combobox")).toBeVisible();
 });
 
-test("visitors can switch to the professional theme and it is remembered", async ({ page }) => {
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: /Find opportunities that fit you/ })).toBeVisible();
-  await expect(page.getByRole("button", { name: "Playful" })).toHaveAttribute("aria-pressed", "true");
-
-  await page.getByRole("button", { name: "Professional" }).click();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "professional");
-  await expect(page.getByRole("heading", { name: /Search for roles that fit/ })).toBeVisible();
-
-  await page.reload();
-  await expect(page.locator("html")).toHaveAttribute("data-theme", "professional");
-  await expect(page.getByRole("button", { name: "Professional" })).toHaveAttribute("aria-pressed", "true");
-
-  await page.getByRole("button", { name: "Playful" }).click();
-  await expect(page.locator("html")).not.toHaveAttribute("data-theme", "professional");
-});
-
 test("landing page search shows live jobs and carries the search to browse", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveTitle("Khoj");

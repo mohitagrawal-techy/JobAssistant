@@ -44,9 +44,9 @@ Job seekers can turn on an assistant at `/assistant`. It's off by default and ap
 
 Fixed rules choose jobs: minimum score, daily limit (10 at most), excluded companies and required skills. AI only writes the cover note, from structured facts, without the applicant's name, contact details or the job posting's text. Employers can see which applications came through the assistant, and seekers can withdraw one until the employer moves it forward.
 
-## Themes
+## Brand
 
-The site has two themes, Playful (the default) and Professional, chosen with the switch in the navigation and remembered in each visitor's browser. Both use the Khoj brand palette and differ only in type and corners. Theme values live in `frontend/src/index.css`, so components only use names like `bg-canvas` and `text-brand`. Chart colours are checked for colourblind readability.
+Brand colours and fonts live in `frontend/src/index.css`, so components only use names like `bg-canvas` and `text-brand`. Chart colours are checked for colourblind readability.
 
 ## Run it
 

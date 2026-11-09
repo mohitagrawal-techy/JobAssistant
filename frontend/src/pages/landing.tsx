@@ -7,25 +7,16 @@ import type { Job } from "../api/types";
 import { homeFor, useCurrentUser } from "../auth";
 import { Logo } from "../components/Logo";
 import { Button, ErrorText, JobFacts, LinkButton, ScoreBadge } from "../components/ui";
-import { useTheme } from "../theme";
 
 const SEARCH_DELAY_MS = 250;
 const PREVIEW_COUNT = 3;
 const SUGGESTIONS = ["Python", "React", "Data Engineer", "Designer", "Kubernetes"];
 
 const COPY = {
-  playful: {
-    title: "Find opportunities that",
-    accent: "fit you.",
-    lead: "Search real openings right here. Sign up and every job gets a score that tells you why it fits and what's missing.",
-    placeholder: "Try a skill or a job title",
-  },
-  professional: {
-    title: "Search for roles that fit your experience.",
-    accent: "",
-    lead: "Browse open positions below. Create an account to see how each one matches your background, and where the gaps are.",
-    placeholder: "Search by skill or job title",
-  },
+  title: "Find opportunities that",
+  accent: "fit you.",
+  lead: "Search real openings right here. Sign up and every job gets a score that tells you why it fits and what's missing.",
+  placeholder: "Try a skill or a job title",
 };
 
 const SCORE_PARTS = [
@@ -173,9 +164,6 @@ function ResultsSkeleton() {
 }
 
 function Hero() {
-  const { theme } = useTheme();
-  const copy = COPY[theme];
-  const playful = theme === "playful";
   const navigate = useNavigate();
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
@@ -199,22 +187,19 @@ function Hero() {
   };
 
   return (
-    <section className={`relative rounded-panel px-5 pb-6 pt-8 text-white sm:px-10 sm:pb-8 sm:pt-12 ${playful ? "hero-sunset" : "border-frame border-line bg-brand"}`}>
-      {playful && <HeroScenery />}
+    <section className="hero-sunset relative rounded-panel px-5 pb-6 pt-8 text-white sm:px-10 sm:pb-8 sm:pt-12">
+      <HeroScenery />
       {/* DOM order follows the desktop layout. Below xl, jobs move up so results stay next to the search box. */}
       <div className="relative grid grid-cols-[minmax(0,1fr)] gap-y-8 xl:grid-cols-[minmax(0,1fr)_27rem] xl:gap-x-10 xl:gap-y-24">
         <div>
-          {playful && (
-            <p className="mb-5 inline-flex items-center gap-2 rounded-pill border border-white/40 px-3.5 py-1.5 text-sm font-medium">
-              <Sparkle />
-              AI-powered job search
-            </p>
-          )}
-          <h1 className={`text-balance font-display leading-[1.06] ${playful ? "text-[clamp(2.75rem,5vw,4.5rem)]" : "text-[clamp(2.6rem,7vw,4.25rem)]"}`}>
-            {copy.title}
-            {copy.accent && <span className="text-accent"> {copy.accent}</span>}
+          <p className="mb-5 inline-flex items-center gap-2 rounded-pill border border-white/40 px-3.5 py-1.5 text-sm font-medium">
+            <Sparkle />
+            AI-powered job search
+          </p>
+          <h1 className="text-balance font-display text-[clamp(2.75rem,5vw,4.5rem)] leading-[1.06]">
+            {COPY.title} <span className="text-accent">{COPY.accent}</span>
           </h1>
-          <p className="mt-6 max-w-xl text-lg text-white/90">{copy.lead}</p>
+          <p className="mt-6 max-w-xl text-lg text-white/90">{COPY.lead}</p>
 
           <form
             onSubmit={submit}
@@ -223,7 +208,7 @@ function Hero() {
             <input
               type="search"
               aria-label="Search jobs"
-              placeholder={copy.placeholder}
+              placeholder={COPY.placeholder}
               maxLength={200}
               value={draft}
               onChange={(event) => setDraft(event.target.value)}

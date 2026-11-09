@@ -4,7 +4,6 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-do
 import type { User } from "../api/types";
 import { useCurrentUser, useLogout } from "../auth";
 import { Logo } from "./Logo";
-import { THEMES, useTheme } from "../theme";
 
 const pillIdle = "text-white/90 hover:bg-white/15";
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -26,29 +25,6 @@ function primaryLinks(user: User | null | undefined) {
     ];
   }
   return [{ to: "/jobs", label: "Browse jobs" }];
-}
-
-function ThemeSwitch({ onDark = true }: { onDark?: boolean }) {
-  const { theme, setTheme } = useTheme();
-  return (
-    <div role="group" aria-label="Site theme" className={`flex rounded-pill p-0.5 ${onDark ? "bg-white/15" : "bg-canvas"}`}>
-      {THEMES.map(({ id, label }) => {
-        const idle = onDark ? "text-white/90 hover:bg-white/15" : "text-ink-soft hover:text-ink";
-        const active = onDark ? "bg-white text-ink" : "bg-ink text-white";
-        return (
-          <button
-            key={id}
-            type="button"
-            aria-pressed={theme === id}
-            onClick={() => setTheme(id)}
-            className={`rounded-pill px-2.5 py-1 text-xs font-medium ${theme === id ? active : idle}`}
-          >
-            {label}
-          </button>
-        );
-      })}
-    </div>
-  );
 }
 
 function AccountMenu({ user }: { user: User }) {
@@ -96,10 +72,7 @@ function AccountMenu({ user }: { user: User }) {
               <Link to="/privacy" className={item}>Privacy and data</Link>
             </>
           )}
-          <div className="my-1 border-t border-ink/10 px-3 py-2">
-            <p className="mb-1.5 text-xs text-ink-soft">Theme</p>
-            <ThemeSwitch onDark={false} />
-          </div>
+          <div className="my-1 border-t border-ink/10" />
           <button
             type="button"
             className={`${item} w-full text-left`}
@@ -136,9 +109,6 @@ export function Layout() {
               <AccountMenu user={user} />
             ) : (
               <>
-                <span className="mr-1 hidden sm:block">
-                  <ThemeSwitch />
-                </span>
                 <NavLink to="/login" className={linkClass}>
                   Log in
                 </NavLink>
@@ -154,12 +124,6 @@ export function Layout() {
       <main className={`mx-[3%] px-[3%] pt-8 ${user ? "pb-24 md:pb-8" : "pb-8"}`}>
         <Outlet />
       </main>
-
-      {!user && (
-        <footer className="flex justify-center pb-6 sm:hidden">
-          <ThemeSwitch onDark={false} />
-        </footer>
-      )}
 
       {user && (
         <nav aria-label="Main, mobile" className="fixed inset-x-0 bottom-0 z-20 flex border-t border-ink/15 bg-white md:hidden">

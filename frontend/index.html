@@ -6,14 +6,6 @@
     <meta name="theme-color" content="#4c1d95" />
     <title>Khoj</title>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <script>
-      // Applied before the first paint so a saved theme doesn't flash the default one.
-      try {
-        if (localStorage.getItem("jobassistent-theme") === "professional") {
-          document.documentElement.dataset.theme = "professional";
-        }
-      } catch {}
-    </script>
   </head>
   <body>
     <div id="root"></div>
