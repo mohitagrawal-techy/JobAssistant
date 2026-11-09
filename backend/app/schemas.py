@@ -23,9 +23,7 @@ def _check_currency(value: str) -> str:
     return value
 
 
-class RegisterIn(BaseModel):
-    email: EmailStr
-    password: str = Field(min_length=8, max_length=128)
+class GoogleSignupIn(BaseModel):
     role: Role
     consent: bool
 
@@ -37,9 +35,27 @@ class RegisterIn(BaseModel):
         return value
 
 
+class RegisterIn(GoogleSignupIn):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+
+
 class LoginIn(BaseModel):
     email: EmailStr
     password: str = Field(max_length=128)
+
+
+class ForgotPasswordIn(BaseModel):
+    email: EmailStr
+
+
+class ResetPasswordIn(BaseModel):
+    token: str = Field(max_length=200)
+    password: str = Field(min_length=8, max_length=128)
+
+
+class VerifyEmailIn(BaseModel):
+    token: str = Field(max_length=200)
 
 
 class OrgIn(BaseModel):
@@ -59,6 +75,7 @@ class UserOut(BaseModel):
     id: uuid.UUID
     email: str
     role: Role
+    email_verified: bool
     organization: OrgOut | None = None
 
 

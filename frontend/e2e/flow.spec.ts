@@ -136,6 +136,15 @@ test("hiring partner writes a job, asks the agent and acts on insights", async (
   await expect(page.getByTestId("agent-card").first().getByRole("combobox")).toBeVisible();
 });
 
+test("forgot password confirms without revealing whether the account exists", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByRole("link", { name: "Forgot your password?" }).click();
+  await expect(page.getByRole("heading", { name: "Reset your password" })).toBeVisible();
+  await page.getByLabel("Email").fill(`nobody-${stamp}@example.com`);
+  await page.getByRole("button", { name: "Send reset link" }).click();
+  await expect(page.getByRole("status")).toContainText("If nobody-");
+});
+
 test("landing page search shows live jobs and carries the search to browse", async ({ page }) => {
   await page.goto("/");
   await expect(page).toHaveTitle("Khoj");

@@ -12,7 +12,16 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.assistant import scheduler_loop
 from app.config import get_settings
 from app.db import get_session
-from app.routers import applications, assistant, auth, hiring_tools, jobs, matches, profile
+from app.routers import (
+    applications,
+    assistant,
+    auth,
+    google_auth,
+    hiring_tools,
+    jobs,
+    matches,
+    profile,
+)
 
 settings = get_settings()
 
@@ -33,7 +42,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-for module in (auth, profile, assistant, hiring_tools, jobs, matches, applications):
+for module in (auth, google_auth, profile, assistant, hiring_tools, jobs, matches, applications):
     app.include_router(module.router, prefix="/api")
 
 

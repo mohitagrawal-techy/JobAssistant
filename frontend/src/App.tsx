@@ -3,6 +3,7 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 
 import { RequireRole } from "./auth";
 import { Layout } from "./components/Layout";
+import { FinishSignupPage, ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from "./pages/account";
 import { AssistantPage } from "./pages/assistant";
 import { LandingPage } from "./pages/landing";
 import { JobDetailPage, JobSearchPage, LoginPage, RegisterPage } from "./pages/public";
@@ -33,6 +34,10 @@ export default function App() {
           <Route index element={<LandingPage />} />
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
+          <Route path="finish-signup" element={<FinishSignupPage />} />
+          <Route path="forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="reset-password" element={<ResetPasswordPage />} />
+          <Route path="verify-email" element={<VerifyEmailPage />} />
           <Route path="jobs" element={<JobSearchPage />} />
           <Route path="jobs/:id" element={<JobDetailPage />} />
           <Route path="assistant" element={seeker(<AssistantPage />)} />

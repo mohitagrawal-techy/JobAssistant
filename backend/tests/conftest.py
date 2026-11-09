@@ -6,6 +6,10 @@ import re
 os.environ["LLM_PROVIDER"] = "fake"
 os.environ["ASSISTANT_SCHEDULER_ENABLED"] = "false"
 os.environ["EMBEDDING_PROVIDER"] = "fake"
+os.environ["EMAIL_PROVIDER"] = "fake"
+os.environ["GOOGLE_CLIENT_ID"] = "test-google-client"
+os.environ["GOOGLE_CLIENT_SECRET"] = "test-google-secret"
+os.environ["APP_BASE_URL"] = "http://localhost:5173"
 os.environ["STORAGE_DIR"] = "/tmp/jobassistent-test-storage"
 _admin_url = os.environ.get(
     "DATABASE_URL", "postgresql+asyncpg://jobassistent:jobassistent@localhost:5432/jobassistent"
@@ -19,6 +23,7 @@ from sqlalchemy import text  # noqa: E402
 from sqlalchemy.ext.asyncio import create_async_engine  # noqa: E402
 
 from app.db import engine  # noqa: E402
+from app.mailer import get_email_sender  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import Base  # noqa: E402
 
@@ -43,6 +48,7 @@ async def clean_tables(database):
     names = ", ".join(table.name for table in Base.metadata.sorted_tables)
     async with engine.begin() as connection:
         await connection.execute(text(f"TRUNCATE {names} CASCADE"))
+    get_email_sender().outbox.clear()
 
 
 def new_client() -> AsyncClient:

@@ -67,7 +67,11 @@ async def seed(db: AsyncSession) -> None:
     }
     db.add_all(organizations.values())
     recruiter = User(
-        email=DEMO_RECRUITER, password_hash=password_hash, role="recruiter", consent_at=now
+        email=DEMO_RECRUITER,
+        password_hash=password_hash,
+        role="recruiter",
+        consent_at=now,
+        email_verified_at=now,
     )
     db.add(recruiter)
     await db.flush()
@@ -75,7 +79,13 @@ async def seed(db: AsyncSession) -> None:
 
     profiles: list[CandidateProfile] = []
     for item in data["candidates"]:
-        user = User(email=item["email"], password_hash=password_hash, role="seeker", consent_at=now)
+        user = User(
+            email=item["email"],
+            password_hash=password_hash,
+            role="seeker",
+            consent_at=now,
+            email_verified_at=now,
+        )
         db.add(user)
         await db.flush()
         profile = CandidateProfile(

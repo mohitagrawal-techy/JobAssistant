@@ -1,9 +1,12 @@
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 
+import { send } from "../api/client";
 import type { User } from "../api/types";
 import { useCurrentUser, useLogout } from "../auth";
 import { Logo } from "./Logo";
+import { ErrorText } from "./ui";
 
 const pillIdle = "text-white/90 hover:bg-white/15";
 const linkClass = ({ isActive }: { isActive: boolean }) =>
@@ -25,6 +28,34 @@ function primaryLinks(user: User | null | undefined) {
     ];
   }
   return [{ to: "/jobs", label: "Browse jobs" }];
+}
+
+function VerifyEmailBanner({ email }: { email: string }) {
+  const resend = useMutation({ mutationFn: () => send<void>("POST", "/auth/resend-verification") });
+  return (
+    <div className="mx-[3%] px-[3%] pt-4">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-2xl bg-highlight px-4 py-3 text-sm text-ink">
+        <p>
+          Confirm your email. We sent a link to <strong>{email}</strong>.
+        </p>
+        {resend.isSuccess ? (
+          <p role="status" className="font-semibold">
+            Sent. Check your inbox.
+          </p>
+        ) : (
+          <button
+            type="button"
+            className="font-semibold text-brand underline disabled:opacity-50"
+            disabled={resend.isPending}
+            onClick={() => resend.mutate()}
+          >
+            Send it again
+          </button>
+        )}
+        <ErrorText error={resend.error} />
+      </div>
+    </div>
+  );
 }
 
 function AccountMenu({ user }: { user: User }) {
@@ -120,6 +151,8 @@ export function Layout() {
           </div>
         </div>
       </nav>
+
+      {user && !user.email_verified && <VerifyEmailBanner email={user.email} />}
 
       <main className={`mx-[3%] px-[3%] pt-8 ${user ? "pb-24 md:pb-8" : "pb-8"}`}>
         <Outlet />

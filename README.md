@@ -48,6 +48,24 @@ Fixed rules choose jobs: minimum score, daily limit (10 at most), excluded compa
 
 Brand colours and fonts live in `frontend/src/index.css`, so components only use names like `bg-canvas` and `text-brand`. Chart colours are checked for colourblind readability.
 
+## Accounts and email
+
+New accounts get a link to confirm their email, and anyone can reset a forgotten password by email. Links work once and only their hash is stored. Confirmation links last 48 hours and reset links last 1 hour. A password reset signs the user out on every device. Unconfirmed accounts see a reminder but aren't blocked from anything yet.
+
+Failed logins are limited to 5 per 15 minutes for each email and IP address, with looser limits per email and per IP. Sign-ups and email sends are limited too. Limits are stored in Postgres, so they hold across restarts and server processes.
+
+In development, `EMAIL_PROVIDER=console` prints each email to the backend log, so run `docker compose logs backend` to find a link. For real delivery set `EMAIL_PROVIDER=smtp`, the `SMTP_*` values and `APP_BASE_URL`. Behind a reverse proxy, set `TRUSTED_PROXY_COUNT`, or every visitor shares the proxy's IP address.
+
+### Google sign-in
+
+The "Continue with Google" button appears once `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` are set. Create them in the [Google Cloud console](https://console.cloud.google.com/apis/credentials) as an OAuth client of type "Web application", and add this authorized redirect URI, using your own `APP_BASE_URL` in production:
+
+```
+http://localhost:5173/api/auth/google/callback
+```
+
+New Google users choose their role and accept the data consent on a short page before an account is created. A Google login joins an existing account with the same email. If that email was never confirmed, its password is removed and its sessions end, so nobody who pre-registered someone else's address keeps access.
+
 ## Run it
 
 Requires Docker and Ollama running on the host.
@@ -86,8 +104,7 @@ python -m scripts.compare_models gpt-oss:20b llama3.2  # from backend/, compare 
 
 ## Before real-world use
 
-This is a portfolio project. Salary conversion uses static rates in `app/fx.py`, there's no email
-verification or password reset, login has no rate limiting, and `JWT_SECRET` and `COOKIE_SECURE`
-must be set for any deployment. Automated hiring tools are regulated in several regions, including
+This is a portfolio project. Salary conversion uses static rates in `app/fx.py`, and `JWT_SECRET`
+and `COOKIE_SECURE` must be set for any deployment. Automated hiring tools are regulated in several regions, including
 under the EU AI Act and New York City Local Law 144, so get legal advice before using this on real
 candidates.

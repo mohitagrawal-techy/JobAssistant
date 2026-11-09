@@ -8,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -38,10 +39,36 @@ class User(Base):
 
     id: Mapped[uuid.UUID] = _id()
     email: Mapped[str] = mapped_column(String(320), unique=True, index=True)
-    password_hash: Mapped[str] = mapped_column(String(255))
+    password_hash: Mapped[str | None] = mapped_column(String(255))  # empty for Google-only users
+    google_sub: Mapped[str | None] = mapped_column(String(255), unique=True, index=True)
     role: Mapped[str] = mapped_column(String(20))  # seeker | recruiter
     consent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    email_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Part of every login token. Raising it signs the user out everywhere.
+    session_version: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     created_at: Mapped[datetime] = _created()
+
+
+class EmailToken(Base):
+    __tablename__ = "email_tokens"
+
+    id: Mapped[uuid.UUID] = _id()
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    purpose: Mapped[str] = mapped_column(String(20))  # verify | reset
+    token_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = _created()
+
+
+class RateLimitEvent(Base):
+    __tablename__ = "rate_limit_events"
+    __table_args__ = (Index("ix_rate_limit_events_key_created", "key", "created_at"),)
+
+    id: Mapped[uuid.UUID] = _id()
+    key: Mapped[str] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
 
 
 class Organization(Base):

@@ -32,10 +32,14 @@ def verify_password(password: str, password_hash: str | None) -> bool:
     return password_hash is not None
 
 
-def set_session_cookie(response: Response, user_id: uuid.UUID) -> None:
+def set_session_cookie(response: Response, user: User) -> None:
     settings = get_settings()
     token = jwt.encode(
-        {"sub": str(user_id), "exp": datetime.now(UTC) + TOKEN_LIFETIME},
+        {
+            "sub": str(user.id),
+            "ver": user.session_version,
+            "exp": datetime.now(UTC) + TOKEN_LIFETIME,
+        },
         settings.jwt_secret,
         algorithm="HS256",
     )
@@ -63,10 +67,11 @@ async def current_user(
     try:
         payload = jwt.decode(session, get_settings().jwt_secret, algorithms=["HS256"])
         user_id = uuid.UUID(payload["sub"])
+        version = payload.get("ver", 0)
     except (jwt.PyJWTError, KeyError, ValueError) as exc:
         raise unauthorized from exc
     user = await db.get(User, user_id)
-    if user is None:
+    if user is None or user.session_version != version:
         raise unauthorized
     return user
 

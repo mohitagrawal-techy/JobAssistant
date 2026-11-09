@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -11,6 +12,19 @@ class Settings(BaseSettings):
     cookie_secure: bool = False  # set true when served over HTTPS
     cors_origins: list[str] = ["http://localhost:5173"]
     storage_dir: str = "storage"
+    app_base_url: str = "http://localhost:5173"  # used in links sent by email
+    trusted_proxy_count: int = 0  # reverse proxies in front of the API, for finding client IPs
+
+    google_client_id: str = ""
+    google_client_secret: str = ""
+
+    email_provider: Literal["console", "smtp", "fake"] = "console"
+    email_from: str = "Khoj <no-reply@localhost>"
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_username: str = ""
+    smtp_password: str = ""
+    smtp_starttls: bool = True
 
     assistant_scheduler_enabled: bool = True
     assistant_interval_seconds: int = 1800

@@ -5,7 +5,13 @@ export type LocationType = "remote" | "hybrid" | "onsite";
 export const CURRENCIES = ["USD", "EUR", "GBP", "INR", "CAD", "AUD", "SGD", "AED", "JPY", "CHF"];
 
 export type Organization = { id: string; name: string; type: "company" | "agency" };
-export type User = { id: string; email: string; role: Role; organization: Organization | null };
+export type User = {
+  id: string;
+  email: string;
+  role: Role;
+  email_verified: boolean;
+  organization: Organization | null;
+};
 
 export type Skill = { name: string; years: number | null };
 

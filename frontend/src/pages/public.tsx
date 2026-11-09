@@ -21,7 +21,7 @@ import {
   TextInput,
 } from "../components/ui";
 
-function useFinishAuth() {
+export function useFinishAuth() {
   const client = useQueryClient();
   const navigate = useNavigate();
   return (user: User) => {
@@ -30,7 +30,71 @@ function useFinishAuth() {
   };
 }
 
+const GOOGLE_ERRORS: Record<string, string> = {
+  cancelled: "Google sign-in was cancelled.",
+  failed: "We couldn't sign you in with Google. Try again.",
+  unverified: "Google hasn't verified this email address, so it can't be used to sign in.",
+};
+
+function GoogleButton({ role }: { role?: Role }) {
+  const providers = useQuery({
+    queryKey: ["auth-providers"],
+    queryFn: () => api<{ google: boolean }>("/auth/providers"),
+    staleTime: Infinity,
+  });
+  if (!providers.data?.google) return null;
+  return (
+    <>
+      <a
+        href={`/api/auth/google/start${role ? `?role=${role}` : ""}`}
+        className="btn btn-secondary flex items-center justify-center gap-3 rounded-pill border-frame border-input bg-white px-4 py-2 text-sm font-semibold text-ink"
+      >
+        {/* Google's sign-in guidelines require its logo in these exact colours. */}
+        <svg viewBox="0 0 18 18" className="h-[18px] w-[18px]" aria-hidden="true">
+          <path fill="#EA4335" d="M9 3.48c1.69 0 2.83.73 3.48 1.34l2.54-2.48C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.96l2.91 2.26C4.6 5.05 6.62 3.48 9 3.48z" />
+          <path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z" />
+          <path fill="#FBBC05" d="M3.88 10.78A5.54 5.54 0 0 1 3.58 9c0-.62.11-1.22.29-1.78L.96 4.96A9.008 9.008 0 0 0 0 9c0 1.45.35 2.82.96 4.04l2.92-2.26z" />
+          <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.4-1.57-5.12-3.74L.97 13.04C2.44 15.98 5.48 18 9 18z" />
+        </svg>
+        Continue with Google
+      </a>
+      <p className="my-4 flex items-center gap-3 text-sm text-ink-muted before:h-px before:flex-1 before:bg-ink/15 after:h-px after:flex-1 after:bg-ink/15">
+        or
+      </p>
+    </>
+  );
+}
+
+export function RoleAndConsentFields({
+  role,
+  consent,
+  onRole,
+  onConsent,
+}: {
+  role: Role;
+  consent: boolean;
+  onRole: (role: Role) => void;
+  onConsent: (consent: boolean) => void;
+}) {
+  return (
+    <>
+      <Field label="I am">
+        <select className={inputClass} value={role} onChange={(e) => onRole(e.target.value as Role)}>
+          <option value="seeker">Looking for a job</option>
+          <option value="recruiter">Hiring or recruiting</option>
+        </select>
+      </Field>
+      <label className="flex gap-2 text-sm text-ink-soft">
+        <input type="checkbox" className="mt-0.5" checked={consent} onChange={(e) => onConsent(e.target.checked)} required />
+        I agree that my data is processed to provide matching, and I can export or delete it at any time.
+      </label>
+    </>
+  );
+}
+
 export function LoginPage() {
+  const [params] = useSearchParams();
+  const googleError = GOOGLE_ERRORS[params.get("google") ?? ""];
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const finish = useFinishAuth();
@@ -46,6 +110,17 @@ export function LoginPage() {
   return (
     <div className="mx-auto max-w-sm">
       <PageTitle>Log in</PageTitle>
+      {params.get("reset") === "1" && (
+        <p role="status" className="mb-4 rounded-xl bg-positive p-3 text-sm text-ink">
+          Your password is updated. Log in with your new password.
+        </p>
+      )}
+      {googleError && (
+        <p role="alert" className="mb-4 text-sm font-medium text-danger">
+          {googleError}
+        </p>
+      )}
+      <GoogleButton />
       <form onSubmit={submit} className="space-y-4">
         <TextInput label="Email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         <TextInput label="Password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
@@ -53,6 +128,11 @@ export function LoginPage() {
         <Button disabled={login.isPending} className="w-full">
           Log in
         </Button>
+        <p className="text-center text-sm">
+          <Link to="/forgot-password" className="font-semibold text-brand underline">
+            Forgot your password?
+          </Link>
+        </p>
       </form>
       <div className="mt-6 rounded-xl border border-ink/15 bg-white p-3 text-sm text-ink-soft">
         <p className="font-medium text-ink-soft">Demo accounts (after seeding)</p>
@@ -87,19 +167,11 @@ export function RegisterPage() {
   return (
     <div className="mx-auto max-w-sm">
       <PageTitle>Create your account</PageTitle>
+      <GoogleButton role={initialRole === "recruiter" || initialRole === "seeker" ? initialRole : undefined} />
       <form onSubmit={submit} className="space-y-4">
-        <Field label="I am">
-          <select className={inputClass} value={role} onChange={(e) => setRole(e.target.value as Role)}>
-            <option value="seeker">Looking for a job</option>
-            <option value="recruiter">Hiring or recruiting</option>
-          </select>
-        </Field>
         <TextInput label="Email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         <TextInput label="Password (at least 8 characters)" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
-        <label className="flex gap-2 text-sm text-ink-soft">
-          <input type="checkbox" className="mt-0.5" checked={consent} onChange={(e) => setConsent(e.target.checked)} required />
-          I agree that my data is processed to provide matching, and I can export or delete it at any time.
-        </label>
+        <RoleAndConsentFields role={role} consent={consent} onRole={setRole} onConsent={setConsent} />
         <ErrorText error={register.error} />
         <Button disabled={register.isPending} className="w-full">
           Sign up
