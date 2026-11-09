@@ -50,7 +50,7 @@ Brand colours and fonts live in `frontend/src/index.css`, so components only use
 
 ## Accounts and email
 
-New accounts get a link to confirm their email, and anyone can reset a forgotten password by email. Links work once and only their hash is stored. Confirmation links last 48 hours and reset links last 1 hour. A password reset signs the user out on every device. Unconfirmed accounts see a reminder but aren't blocked from anything yet.
+New accounts get a link to confirm their email, and anyone can reset a forgotten password by email. Links work once and only their hash is stored. Confirmation links last 48 hours and reset links last 1 hour. A password reset signs the user out on every device. Until they confirm, accounts see a reminder and can browse and fill in their profile, but can't apply to jobs, publish a job or use the assistant.
 
 Failed logins are limited to 5 per 15 minutes for each email and IP address, with looser limits per email and per IP. Sign-ups and email sends are limited too. Limits are stored in Postgres, so they hold across restarts and server processes.
 

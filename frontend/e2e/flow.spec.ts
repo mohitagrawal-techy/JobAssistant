@@ -1,4 +1,5 @@
 import { expect, type Page, test } from "@playwright/test";
+import { execSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -19,6 +20,27 @@ async function register(page: Page, role: "seeker" | "recruiter", email: string)
   await page.getByRole("checkbox").check();
   await page.getByRole("button", { name: "Sign up" }).click();
   await page.waitForURL(/\/(matches|recruiter)/);
+  await confirmEmail(page, email);
+}
+
+// The stack runs with EMAIL_PROVIDER=console, so confirmation links appear in the backend log.
+function confirmationLink(email: string): string | undefined {
+  const logs = execSync("docker compose logs --no-log-prefix --since 5m backend", {
+    cwd: path.resolve(here, "../.."),
+    encoding: "utf8",
+    maxBuffer: 100_000_000,
+  });
+  const emailStart = logs.lastIndexOf(`Email to ${email}`);
+  if (emailStart < 0) return undefined;
+  return logs.slice(emailStart).match(/http:\/\/localhost:5173\/verify-email\?token=[\w-]+/)?.[0];
+}
+
+async function confirmEmail(page: Page, email: string) {
+  const returnTo = page.url();
+  await expect.poll(() => confirmationLink(email), { timeout: 10_000 }).toBeTruthy();
+  await page.goto(confirmationLink(email)!);
+  await expect(page.getByText("Your email is confirmed.")).toBeVisible();
+  await page.goto(returnTo);
 }
 
 test("recruiter and seeker complete a hire end to end", async ({ browser }) => {

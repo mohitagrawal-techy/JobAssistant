@@ -22,7 +22,14 @@ from app.config import get_settings
 from app.db import SessionLocal
 from app.matching.scoring import ScoreBreakdown
 from app.matching.service import MIN_EXPERIENCE_SHARE, RETRIEVAL_LIMIT, jobs_for_candidate
-from app.models import Application, AssistantAction, AssistantSettings, CandidateProfile, Job
+from app.models import (
+    Application,
+    AssistantAction,
+    AssistantSettings,
+    CandidateProfile,
+    Job,
+    User,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +175,10 @@ async def run_all_enabled() -> None:
     async with SessionLocal() as db:
         ids: list[uuid.UUID] = list(
             await db.scalars(
-                select(AssistantSettings.candidate_id).where(AssistantSettings.enabled.is_(True))
+                select(AssistantSettings.candidate_id)
+                .join(CandidateProfile, CandidateProfile.id == AssistantSettings.candidate_id)
+                .join(User, User.id == CandidateProfile.user_id)
+                .where(AssistantSettings.enabled.is_(True), User.email_verified_at.is_not(None))
             )
         )
     for candidate_id in ids:

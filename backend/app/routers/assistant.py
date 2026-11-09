@@ -6,8 +6,9 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.assistant import ProfileIncomplete, run_for_candidate
+from app.auth import current_confirmed_user, current_user, ensure_email_confirmed
 from app.db import get_session
-from app.models import Application, AssistantAction, AssistantSettings, CandidateProfile
+from app.models import Application, AssistantAction, AssistantSettings, CandidateProfile, User
 from app.routers.profile import current_profile
 from app.schemas import (
     AssistantActionOut,
@@ -109,8 +110,11 @@ async def get_assistant(
 async def update_settings(
     body: AssistantSettingsIn,
     profile: CandidateProfile = Depends(current_profile),
+    user: User = Depends(current_user),
     db: AsyncSession = Depends(get_session),
 ) -> AssistantSettingsOut:
+    if body.enabled:
+        ensure_email_confirmed(user)
     settings = await _settings_for(db, profile)
     if body.mode == "auto":
         if not body.auto_consent and settings.auto_consent_at is None:
@@ -135,6 +139,7 @@ async def update_settings(
 @router.post("/assistant/run")
 async def run_assistant(
     profile: CandidateProfile = Depends(current_profile),
+    _confirmed: User = Depends(current_confirmed_user),
     db: AsyncSession = Depends(get_session),
 ) -> AssistantRunOut:
     settings = await _settings_for(db, profile)
@@ -151,6 +156,7 @@ async def run_assistant(
 async def approve_action(
     body: AssistantApproveIn,
     action: AssistantAction = Depends(_owned_action),
+    _confirmed: User = Depends(current_confirmed_user),
     db: AsyncSession = Depends(get_session),
 ) -> AssistantActionOut:
     if action.status != "pending":

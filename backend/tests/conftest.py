@@ -55,6 +55,13 @@ def new_client() -> AsyncClient:
     return AsyncClient(transport=ASGITransport(app=app), base_url="http://test")
 
 
+async def confirm_latest_email(client: AsyncClient) -> None:
+    content = get_email_sender().outbox[-1].get_body(("plain",)).get_content()
+    token = re.search(r"token=([\w-]+)", content).group(1)
+    response = await client.post("/api/auth/verify-email", json={"token": token})
+    assert response.status_code == 204
+
+
 @pytest_asyncio.fixture
 async def seeker():
     async with new_client() as client:
@@ -68,6 +75,7 @@ async def seeker():
             },
         )
         assert response.status_code == 201
+        await confirm_latest_email(client)
         yield client
 
 
@@ -77,6 +85,7 @@ async def register_recruiter(client: AsyncClient, email: str, org_name: str) -> 
         json={"email": email, "password": "password123", "role": "recruiter", "consent": True},
     )
     assert response.status_code == 201
+    await confirm_latest_email(client)
     response = await client.post("/api/organization", json={"name": org_name, "type": "agency"})
     assert response.status_code == 201
 

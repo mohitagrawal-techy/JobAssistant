@@ -2,6 +2,7 @@ import re
 from datetime import UTC, datetime, timedelta
 from unittest.mock import patch
 
+import pytest_asyncio
 from sqlalchemy import select, text
 
 from app.db import SessionLocal
@@ -12,6 +13,18 @@ from tests.conftest import new_client
 EMAIL = "seeker@example.com"
 PASSWORD = "password123"
 NEW_PASSWORD = "brand-new-password"
+
+
+@pytest_asyncio.fixture
+async def seeker():
+    """An account that hasn't confirmed its email, unlike the shared fixture of this name."""
+    async with new_client() as client:
+        response = await client.post(
+            "/api/auth/register",
+            json={"email": EMAIL, "password": PASSWORD, "role": "seeker", "consent": True},
+        )
+        assert response.status_code == 201
+        yield client
 
 
 def outbox():

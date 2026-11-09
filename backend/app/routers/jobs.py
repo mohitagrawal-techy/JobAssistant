@@ -5,10 +5,10 @@ from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.ai.tasks import parse_job, refresh_job_embedding
-from app.auth import current_org
+from app.auth import current_org, current_user, ensure_email_confirmed
 from app.db import escape_like, get_session
 from app.fx import to_usd
-from app.models import Application, Job, JobSkill, Organization, Skill
+from app.models import Application, Job, JobSkill, Organization, Skill, User
 from app.schemas import (
     JobDraftIn,
     JobIn,
@@ -202,8 +202,11 @@ async def set_job_status(
     body: JobStatusIn,
     background: BackgroundTasks,
     job: Job = Depends(owned_job),
+    user: User = Depends(current_user),
     db: AsyncSession = Depends(get_session),
 ) -> JobOwner:
+    if body.status == "open":
+        ensure_email_confirmed(user)
     if body.status == "open" and not job.title:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, "Add a title before publishing")
     job.status = body.status

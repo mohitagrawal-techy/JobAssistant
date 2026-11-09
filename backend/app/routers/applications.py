@@ -5,9 +5,9 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import current_org
+from app.auth import current_confirmed_user, current_org
 from app.db import get_session
-from app.models import Application, CandidateProfile, Job, Organization
+from app.models import Application, CandidateProfile, Job, Organization, User
 from app.routers.jobs import owned_job
 from app.routers.profile import current_profile
 from app.schemas import ApplicationIn, ApplicationStageIn, RecruiterApplication, SeekerApplication
@@ -42,6 +42,7 @@ def _recruiter_view(application: Application) -> RecruiterApplication:
 async def apply(
     body: ApplicationIn,
     profile: CandidateProfile = Depends(current_profile),
+    _confirmed: User = Depends(current_confirmed_user),
     db: AsyncSession = Depends(get_session),
 ) -> SeekerApplication:
     job = await db.get(Job, body.job_id)

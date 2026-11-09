@@ -76,6 +76,20 @@ async def current_user(
     return user
 
 
+def ensure_email_confirmed(user: User) -> None:
+    if user.email_verified_at is None:
+        raise HTTPException(
+            status.HTTP_403_FORBIDDEN,
+            "Confirm your email first. Use the link we sent you, or send it again from the "
+            "banner at the top of this page.",
+        )
+
+
+async def current_confirmed_user(user: User = Depends(current_user)) -> User:
+    ensure_email_confirmed(user)
+    return user
+
+
 async def current_seeker(user: User = Depends(current_user)) -> User:
     if user.role != "seeker":
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Job seeker account required")
