@@ -1,6 +1,9 @@
 # Secrets and local config
 .env
 .env.local
+.idea/
+
+*.iml
 
 # Python
 __pycache__/
