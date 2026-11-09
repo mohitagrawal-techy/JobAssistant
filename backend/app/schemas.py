@@ -1,8 +1,9 @@
+import re
 import uuid
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator, model_validator
 
 from app.fx import SUPPORTED_CURRENCIES
 
@@ -66,7 +67,84 @@ class SkillIn(BaseModel):
     years: float | None = Field(default=None, ge=0, le=60)
 
 
-class ProfileIn(BaseModel):
+_PROFILE_DATE = r"^$|^\d{4}(-(0[1-9]|1[0-2]))?$"
+JobType = Literal["full-time", "part-time", "contract", "internship"]
+Availability = Literal[
+    "", "immediately", "2-weeks", "1-month", "2-months", "3-months", "not-looking"
+]
+
+
+class DatedEntry(BaseModel):
+    start: str = Field(default="", pattern=_PROFILE_DATE)
+    end: str = Field(default="", pattern=_PROFILE_DATE)
+    current: bool = False
+    description: str = Field(default="", max_length=2000)
+
+    @model_validator(mode="after")
+    def end_after_start(self) -> "DatedEntry":
+        if self.start and self.end and not self.current and self.end < self.start:
+            raise ValueError("An end date can't be before its start date")
+        return self
+
+
+class WorkEntry(DatedEntry):
+    title: str = Field(default="", max_length=200)
+    company: str = Field(default="", max_length=200)
+
+
+class EducationEntry(BaseModel):
+    degree: str = Field(default="", max_length=200)
+    institution: str = Field(default="", max_length=200)
+    year: int | None = Field(default=None, ge=1950, le=2100)
+
+
+def _check_link(value: str) -> str:
+    value = value.strip()
+    # Links are shown to employers, so only web addresses are allowed (never javascript: etc).
+    if value and not re.match(r"^https?://[^\s]+$", value, re.IGNORECASE):
+        raise ValueError("Links must be full web addresses starting with https://")
+    return value
+
+
+class ProjectEntry(DatedEntry):
+    name: str = Field(default="", max_length=200)
+    role: str = Field(default="", max_length=200)
+    url: str = Field(default="", max_length=300)
+    technologies: list[Annotated[str, Field(max_length=100)]] = Field(
+        default_factory=list, max_length=20
+    )
+
+    _url = field_validator("url")(_check_link)
+
+
+class ProfileLinks(BaseModel):
+    linkedin: str = Field(default="", max_length=300)
+    github: str = Field(default="", max_length=300)
+    portfolio: str = Field(default="", max_length=300)
+
+    _links = field_validator("linkedin", "github", "portfolio")(_check_link)
+
+
+class ProfileExtras(BaseModel):
+    work_history: list[WorkEntry] = Field(default_factory=list, max_length=20)
+    projects: list[ProjectEntry] = Field(default_factory=list, max_length=20)
+    education: list[EducationEntry] = Field(default_factory=list, max_length=10)
+    certifications: list[Annotated[str, Field(max_length=200)]] = Field(
+        default_factory=list, max_length=30
+    )
+    languages: list[Annotated[str, Field(max_length=100)]] = Field(
+        default_factory=list, max_length=20
+    )
+    desired_roles: list[Annotated[str, Field(max_length=200)]] = Field(
+        default_factory=list, max_length=10
+    )
+    job_types: list[JobType] = Field(default_factory=list, max_length=4)
+    links: ProfileLinks = Field(default_factory=ProfileLinks)
+    availability: Availability = ""
+    open_to_relocate: bool = False
+
+
+class ProfileIn(ProfileExtras):
     full_name: str = Field(default="", max_length=200)
     headline: str = Field(default="", max_length=200)
     summary: str = Field(default="", max_length=5000)
@@ -172,7 +250,7 @@ class ScoreOut(BaseModel):
     missing_nice: list[str]
 
 
-class CandidateSummary(BaseModel):
+class CandidateSummary(ProfileExtras):
     id: uuid.UUID
     full_name: str
     headline: str

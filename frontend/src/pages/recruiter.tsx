@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { api, send } from "../api/client";
 import { AgentChat } from "../components/AgentChat";
+import { CandidateDetails } from "../components/CandidateDetails";
 import { JobHeader } from "../components/JobHeader";
 import type {
   CandidateMatch,
@@ -381,6 +382,7 @@ function CandidateCard({ jobId, match }: { jobId: string; match: CandidateMatch 
           <p className="mt-2 text-xs text-ink-muted">
             Skills {score.skills}, similarity {score.semantic}, experience {score.experience}, logistics {score.logistics}
           </p>
+          <CandidateDetails candidate={candidate} />
         </div>
       </div>
       {open && <ExplanationPanel path={`/org/jobs/${jobId}/candidates/${candidate.id}/explanation`} />}
@@ -532,6 +534,7 @@ export function PipelinePage() {
                   <div key={item.id} className="rounded-xl border border-ink/15 bg-white p-3">
                     <p className="text-sm font-medium">{item.candidate.full_name || "Unnamed candidate"}</p>
                     <p className="text-xs text-ink-soft">{item.candidate.headline}</p>
+                    <CandidateDetails candidate={item.candidate} />
                     {item.cover_note && (
                       <details className="mt-1 text-xs text-ink-soft">
                         <summary className="cursor-pointer">

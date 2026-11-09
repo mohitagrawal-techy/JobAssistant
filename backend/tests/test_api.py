@@ -387,3 +387,96 @@ async def test_ollama_client_rejects_oversized_input_instead_of_truncating():
     client = ollama_client.OllamaClient("any-model", "http://unused:1")
     with pytest.raises(AIInputTooLong):
         await client.extract("system", "x" * (ollama_client.MAX_INPUT_CHARS + 1), ResumeExtraction)
+
+
+FULL_PROFILE = {
+    "work_history": [
+        {
+            "title": "Engineer",
+            "company": "Acme",
+            "start": "2020-03",
+            "end": "2023",
+            "description": "APIs.",
+        },
+        {"title": "Lead", "company": "Beta", "start": "2023", "current": True},
+    ],
+    "projects": [
+        {
+            "name": "Open Metrics",
+            "role": "Maintainer",
+            "start": "2022",
+            "current": True,
+            "url": "https://example.com/metrics",
+            "technologies": ["Go", "Prometheus"],
+            "description": "A metrics library.",
+        }
+    ],
+    "education": [{"degree": "BSc", "institution": "State University", "year": 2018}],
+    "certifications": ["AWS Solutions Architect"],
+    "languages": ["English", "Hindi"],
+    "desired_roles": ["Staff Engineer"],
+    "job_types": ["full-time", "contract"],
+    "links": {"linkedin": "https://linkedin.com/in/sam", "github": "http://github.com/sam"},
+    "availability": "1-month",
+    "open_to_relocate": True,
+}
+
+
+async def test_extended_profile_round_trip_and_employer_view(recruiter, seeker):
+    job_id = await publish_job(recruiter)
+    saved = await save_profile(seeker, **FULL_PROFILE)
+    assert saved["work_history"][1]["current"] is True
+    assert saved["links"]["portfolio"] == ""
+    assert (await seeker.get("/api/profile")).json()["education"][0]["year"] == 2018
+
+    candidate = (await recruiter.get(f"/api/org/jobs/{job_id}/matches")).json()[0]["candidate"]
+    assert candidate["certifications"] == ["AWS Solutions Architect"]
+    assert candidate["projects"][0]["technologies"] == ["Go", "Prometheus"]
+    assert candidate["availability"] == "1-month"
+    assert (await seeker.get("/api/profile/export")).json()["profile"]["languages"] == [
+        "English",
+        "Hindi",
+    ]
+
+
+async def test_extended_profile_does_not_change_score(recruiter, seeker):
+    job_id = await publish_job(recruiter)
+    await save_profile(seeker)
+    before = (await recruiter.get(f"/api/org/jobs/{job_id}/matches")).json()[0]["score"]
+    await save_profile(seeker, **FULL_PROFILE)
+    after = (await recruiter.get(f"/api/org/jobs/{job_id}/matches")).json()[0]["score"]
+    assert before == after
+
+
+@pytest.mark.parametrize(
+    "bad",
+    [
+        {"links": {"portfolio": "javascript:alert(1)"}},
+        {"links": {"github": "data:text/html,hi"}},
+        {"links": {"linkedin": "linkedin.com/in/sam"}},
+        {"work_history": [{"title": "X", "start": "last year"}]},
+        {"work_history": [{"title": "X", "start": "2024-13"}]},
+        {"work_history": [{"title": "X", "start": "2024", "end": "2020"}]},
+        {"education": [{"degree": "X", "year": 1200}]},
+        {"projects": [{"name": "X", "url": "javascript:alert(1)"}]},
+        {"projects": [{"name": "X", "start": "2024", "end": "2021"}]},
+        {"job_types": ["gig"]},
+        {"availability": "whenever"},
+    ],
+    ids=[
+        "js-link",
+        "data-link",
+        "no-scheme",
+        "bad-date",
+        "bad-month",
+        "end-first",
+        "year",
+        "project-js",
+        "project-dates",
+        "type",
+        "avail",
+    ],
+)
+async def test_extended_profile_rejects_bad_values(seeker, bad):
+    response = await seeker.put("/api/profile", json={**PROFILE, **bad})
+    assert response.status_code == 422

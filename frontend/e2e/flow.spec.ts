@@ -43,7 +43,8 @@ test("recruiter and seeker complete a hire end to end", async ({ browser }) => {
   await seeker.goto("/profile");
   await seeker.getByLabel(/Resume \(PDF or DOCX/).setInputFiles(path.join(here, "fixtures/resume.docx"));
   await seeker.getByRole("button", { name: "Fill the form with these details" }).click();
-  await expect(seeker.getByLabel("Skills (comma separated)")).toHaveValue(/elixir/i);
+  await expect(seeker.getByTestId("skill-chips")).toContainText(/elixir/i);
+  await expect(seeker.getByTestId("work-entry").first().getByLabel("Job title")).toHaveValue(/platform engineer/i);
   await seeker.getByLabel("Full name").fill("Robin Vale");
   await seeker.getByRole("button", { name: "Save and see matches" }).click();
 
@@ -63,6 +64,8 @@ test("recruiter and seeker complete a hire end to end", async ({ browser }) => {
   await row.getByRole("link", { name: "Candidates" }).click();
   const candidate = recruiter.locator("section", { hasText: "Robin Vale" });
   await expect(candidate).toBeVisible();
+  await candidate.getByText("View full profile").click();
+  await expect(candidate.getByTestId("timeline")).toContainText(/platform engineer/i);
   await candidate.getByRole("button", { name: "Why this match?" }).click();
   await expect(candidate.getByTestId("explanation")).toBeVisible();
 
@@ -302,4 +305,56 @@ test("filter sidebar collapses, gives space back and remembers the choice", asyn
   await expect(matchesPanel.getByLabel("Search your matches")).toBeVisible();
   await page.reload();
   await expect(page.getByRole("complementary", { name: "Search and filters" }).getByLabel("Search your matches")).toBeVisible();
+});
+
+test("profile page builds up a full profile and rejects unsafe links", async ({ page }) => {
+  await register(page, "seeker", `profile-${Date.now()}@example.com`);
+  await page.goto("/profile");
+  const strength = page.getByRole("progressbar", { name: "Profile strength" });
+  await expect(strength).toHaveAttribute("aria-valuenow", "0");
+
+  await page.getByLabel("Full name").fill("Priya Sharma");
+  await page.getByLabel("Your skills").fill("Python, Docker");
+  await page.getByLabel("Your skills").press("Enter");
+  await expect(page.getByTestId("skill-chips")).toContainText("Docker");
+  await page.getByRole("button", { name: "Remove Docker" }).click();
+  await expect(page.getByTestId("skill-chips")).not.toContainText("Docker");
+
+  await page.getByRole("button", { name: "Add a job" }).click();
+  const job = page.getByTestId("work-entry").first();
+  await job.getByLabel("Job title").fill("Backend Engineer");
+  await job.getByLabel("Company").fill("Acme");
+  await job.getByLabel("Started").fill("2021");
+  await job.getByLabel("I work here now").check();
+  await expect(job.getByLabel("Ended")).toBeDisabled();
+
+  await page.getByRole("button", { name: "Add a project" }).click();
+  const project = page.getByTestId("project-entry").first();
+  await project.getByLabel("Project name").fill("Open Metrics");
+  await project.getByLabel("Started").fill("2023");
+  await project.getByLabel("Still working on this").check();
+  await project.getByLabel("Technologies used").fill("Go");
+  await project.getByLabel("Technologies used").press("Enter");
+
+  await page.getByRole("button", { name: "Timeline" }).click();
+  const timeline = page.getByTestId("timeline");
+  await expect(timeline.getByRole("listitem")).toHaveCount(2);
+  await expect(timeline).toContainText("Open Metrics");
+  await expect(timeline).toContainText("Backend Engineer");
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+
+  await page.getByLabel("Availability").selectOption("1-month");
+  await page.getByLabel("Portfolio").fill("javascript:alert(1)");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByRole("alert")).toContainText("https://");
+  await page.getByLabel("Portfolio").fill("https://priya.example.com");
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  await expect(page.getByText("Saved", { exact: true })).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByTestId("work-entry").first().getByLabel("Company")).toHaveValue("Acme");
+  await expect(page.getByLabel("Portfolio")).toHaveValue("https://priya.example.com");
+  await expect(page.getByLabel("Availability")).toHaveValue("1-month");
+  await expect(page.getByTestId("project-entry").first().getByLabel("Project name")).toHaveValue("Open Metrics");
+  expect(Number(await strength.getAttribute("aria-valuenow"))).toBeGreaterThan(0);
 });

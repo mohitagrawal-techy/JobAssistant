@@ -13,7 +13,8 @@ import {
   PipelinePage,
   RecruiterJobsPage,
 } from "./pages/recruiter";
-import { ApplicationsPage, MatchesPage, PrivacyPage, ProfilePage } from "./pages/seeker";
+import { ProfilePage } from "./pages/profile";
+import { ApplicationsPage, MatchesPage, PrivacyPage } from "./pages/seeker";
 
 // The hiring tools include the chart library, so only their users download it.
 const InsightsPage = lazy(() => import("./pages/hiring").then((m) => ({ default: m.InsightsPage })));

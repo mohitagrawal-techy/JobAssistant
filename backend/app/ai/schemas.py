@@ -3,12 +3,45 @@ from typing import Literal
 from pydantic import BaseModel, Field
 
 
+class WorkEntryExtraction(BaseModel):
+    title: str
+    company: str
+    start: str | None = Field(default=None, description="YYYY or YYYY-MM")
+    end: str | None = Field(default=None, description="YYYY or YYYY-MM; null if current")
+    current: bool = False
+    description: str = Field(default="", description="One or two sentences, from the resume only")
+
+
+class ProjectExtraction(BaseModel):
+    name: str
+    role: str = ""
+    start: str | None = Field(default=None, description="YYYY or YYYY-MM")
+    end: str | None = Field(default=None, description="YYYY or YYYY-MM; null if ongoing")
+    current: bool = False
+    description: str = Field(default="", description="One or two sentences, from the resume only")
+    url: str | None = None
+    technologies: list[str] = Field(default_factory=list)
+
+
+class EducationExtraction(BaseModel):
+    degree: str
+    institution: str
+    year: int | None = Field(default=None, description="Graduation year")
+
+
 class ResumeExtraction(BaseModel):
     headline: str = Field(description="Current or most recent job title, or a short role summary")
     summary: str = Field(description="Two or three sentence professional summary")
     years_experience: float | None = Field(description="Total years of professional experience")
     location: str | None = Field(description="City and country, if stated")
     skills: list[str] = Field(description="Technical and professional skills, as short names")
+    work_history: list[WorkEntryExtraction] = Field(default_factory=list)
+    projects: list[ProjectExtraction] = Field(
+        default_factory=list, description="Personal or professional projects listed in the resume"
+    )
+    education: list[EducationExtraction] = Field(default_factory=list)
+    certifications: list[str] = Field(default_factory=list)
+    languages: list[str] = Field(default_factory=list, description="Spoken languages only")
 
 
 class JobExtraction(BaseModel):

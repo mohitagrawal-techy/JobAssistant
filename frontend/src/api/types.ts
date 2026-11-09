@@ -8,7 +8,51 @@ export type Organization = { id: string; name: string; type: "company" | "agency
 export type User = { id: string; email: string; role: Role; organization: Organization | null };
 
 export type Skill = { name: string; years: number | null };
-export type Profile = {
+
+export type WorkEntry = {
+  title: string;
+  company: string;
+  start: string;
+  end: string;
+  current: boolean;
+  description: string;
+};
+export type ProjectEntry = {
+  name: string;
+  role: string;
+  start: string;
+  end: string;
+  current: boolean;
+  description: string;
+  url: string;
+  technologies: string[];
+};
+export type EducationEntry = { degree: string; institution: string; year: number | null };
+export const JOB_TYPES = ["full-time", "part-time", "contract", "internship"] as const;
+export type JobType = (typeof JOB_TYPES)[number];
+export type Availability = "" | "immediately" | "2-weeks" | "1-month" | "2-months" | "3-months" | "not-looking";
+export const AVAILABILITY_LABELS: Record<Availability, string> = {
+  "": "",
+  immediately: "Available now",
+  "2-weeks": "Available in 2 weeks",
+  "1-month": "Available in 1 month",
+  "2-months": "Available in 2 months",
+  "3-months": "Available in 3 months or more",
+  "not-looking": "Not actively looking",
+};
+export type ProfileExtras = {
+  work_history: WorkEntry[];
+  projects: ProjectEntry[];
+  education: EducationEntry[];
+  certifications: string[];
+  languages: string[];
+  desired_roles: string[];
+  job_types: JobType[];
+  links: { linkedin: string; github: string; portfolio: string };
+  availability: Availability;
+  open_to_relocate: boolean;
+};
+export type Profile = ProfileExtras & {
   id: string;
   full_name: string;
   headline: string;
@@ -35,6 +79,11 @@ export type Resume = {
     years_experience: number | null;
     location: string | null;
     skills: string[];
+    work_history?: (Omit<WorkEntry, "start" | "end"> & { start: string | null; end: string | null })[];
+    projects?: (Omit<ProjectEntry, "start" | "end" | "url"> & { start: string | null; end: string | null; url: string | null })[];
+    education?: EducationEntry[];
+    certifications?: string[];
+    languages?: string[];
   } | null;
 };
 
@@ -77,7 +126,7 @@ export type Score = {
   missing_nice: string[];
 };
 
-export type Candidate = {
+export type Candidate = ProfileExtras & {
   id: string;
   full_name: string;
   headline: string;

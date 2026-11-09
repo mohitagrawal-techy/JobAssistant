@@ -41,8 +41,24 @@ def job_owner(job: Job) -> JobOwner:
     )
 
 
+def _extras(profile: CandidateProfile) -> dict:
+    return {
+        "work_history": profile.work_history,
+        "projects": profile.projects,
+        "education": profile.education,
+        "certifications": profile.certifications,
+        "languages": profile.languages,
+        "desired_roles": profile.desired_roles,
+        "job_types": profile.job_types,
+        "links": profile.links,
+        "availability": profile.availability,
+        "open_to_relocate": profile.open_to_relocate,
+    }
+
+
 def profile_out(profile: CandidateProfile) -> ProfileOut:
     return ProfileOut(
+        **_extras(profile),
         id=profile.id,
         full_name=profile.full_name,
         headline=profile.headline,
@@ -64,6 +80,7 @@ def profile_out(profile: CandidateProfile) -> ProfileOut:
 
 def candidate_summary(profile: CandidateProfile) -> CandidateSummary:
     return CandidateSummary(
+        **_extras(profile),
         id=profile.id,
         full_name=profile.full_name,
         headline=profile.headline,

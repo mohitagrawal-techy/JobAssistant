@@ -15,7 +15,7 @@ from app.models import (
     Resume,
     User,
 )
-from app.schemas import ProfileIn, ProfileOut, ResumeOut
+from app.schemas import ProfileExtras, ProfileIn, ProfileOut, ResumeOut
 from app.serializers import job_public, profile_out
 from app.skills import normalize_skill, resolve_skills
 from app.storage import get_storage
@@ -59,6 +59,9 @@ async def update_profile(
         "is_visible",
     ):
         setattr(profile, field, getattr(body, field))
+    extras = body.model_dump(include=set(ProfileExtras.model_fields))
+    for field, value in extras.items():
+        setattr(profile, field, value)
     profile.salary_usd = to_usd(body.salary_min, body.currency)
 
     years_by_name = {normalize_skill(s.name): s.years for s in body.skills}
