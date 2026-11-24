@@ -6,6 +6,50 @@ candidates, and both sides see why a match was made.
 **AI runs locally through [Ollama](https://ollama.com).** No API key is needed, and resumes never
 leave your machine.
 
+![Khoj landing page with job search and an example match score](docs/screenshots/landing.png)
+
+## Features
+
+**For job seekers**
+- Upload a PDF or DOCX resume and the AI fills in your profile for you to check
+- Every job gets a match score out of 100, with the skills you have and the ones you're missing
+- "Why this match?" explanations written on demand
+- Filter by work type, skill, minimum score and salary, with salaries compared across currencies
+- An optional application assistant that prepares or sends applications under rules you set
+
+**For recruiters and agencies**
+- Ranked candidates for each job, with adjustable weights for skills, similarity, experience and logistics
+- A pipeline board across applied, screening, interview, offer, hired and rejected
+- Insights per job: score spread, skill coverage and who has waited longest for a decision
+- An AI job writer that turns a short brief into a full description and flags exclusionary wording
+- A read-only hiring assistant chat that never sees candidate names
+
+**Accounts**
+- Email and password with confirmation and reset links, or Google sign-in
+- Login rate limits stored in Postgres
+
+## Screenshots
+
+| Job seeker | Recruiter |
+| --- | --- |
+| **Matches** ranked by score, with skill gaps<br>![Seeker matches](docs/screenshots/seeker-matches.png) | **Candidates** with adjustable weights and the hiring assistant<br>![Recruiter candidates](docs/screenshots/recruiter-candidates.png) |
+| **Browse jobs** with filters and currency-aware salary search<br>![Job search](docs/screenshots/job-search.png) | **Insights**: applicants, score spread and who needs a decision<br>![Recruiter insights](docs/screenshots/recruiter-insights.png) |
+| **Application assistant** with rules and draft notes for review<br>![Application assistant](docs/screenshots/application-assistant.png) | **Pipeline** across hiring stages<br>![Recruiter pipeline](docs/screenshots/recruiter-pipeline.png) |
+| | **Our jobs** list for a hiring team<br>![Recruiter jobs](docs/screenshots/recruiter-jobs.png) |
+
+Screenshots use the fictional seed data from `scripts/seed.py`.
+
+## Tech stack
+
+| Layer | Tools |
+| --- | --- |
+| Frontend | React 19, TypeScript, Vite, Tailwind CSS 4, TanStack Query, React Router, Recharts |
+| Backend | Python, FastAPI, SQLAlchemy (async), Alembic, Pydantic, Argon2, PyJWT |
+| Data | PostgreSQL 17 with pgvector |
+| AI | Ollama: `gpt-oss:20b` for text, `nomic-embed-text` for embeddings |
+| Tests | pytest, Playwright |
+| Run | Docker Compose |
+
 ```
 Browser ── React + TypeScript (Vite, :5173)
               │  /api
@@ -80,6 +124,29 @@ docker compose exec backend python -m scripts.seed   # 200 fictional candidates,
 Open http://localhost:5173 and use the demo buttons on the login page. Browsing, search and scoring
 work without Ollama. Resume reading and AI explanations need it. `gpt-oss:20b` uses about 13 GB of
 memory; choose a smaller model with `LLM_MODEL` in `.env`.
+
+To change settings, copy `.env.example` to `.env`. Every value has a working development default.
+
+## Project layout
+
+```
+backend/
+  app/
+    ai/          LLM and embedding clients, prompts, the hiring assistant agent
+    matching/    scoring, retrieval and recruiter analytics
+    routers/     API endpoints: auth, jobs, matches, applications, profile, assistant
+    models/      SQLAlchemy tables
+  alembic/       database migrations
+  scripts/       seed data, re-embedding, model comparison
+  tests/
+frontend/
+  src/
+    pages/       seeker, recruiter, hiring tools, assistant, account
+    components/  shared UI, charts, chat
+    api/         typed API client
+  e2e/           Playwright tests
+docs/screenshots/
+```
 
 ## Using a hosted AI API later
 
